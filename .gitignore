@@ -220,5 +220,5 @@ Generated\ Files/
 # MSTest test Results
 [Tt]est[Rr]esult*/
 
+config.json
 .idea/
-TokenFile.cs
