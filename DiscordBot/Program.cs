@@ -1,38 +1,48 @@
 ﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
+
+namespace DiscordBot;
 
 public class Program
 {
-    // https://docs.discordnet.dev/guides/getting_started/first-bot.html
     private static DiscordSocketClient _client;
-    private static string Token { get; set; }
-    
+    public static TokenFile _token;
+    private static CommandService _commands;
+    private static CommandHandler commandHandler;
+
     public static async Task Main()
     {
-        _client.Log += Log;
-        
-        var token = "";
-        
-        // Some alternative options would be to keep your token in an Environment Variable or a standalone file.
-        // var token = Environment.GetEnvironmentVariable("NameOfYourEnvironmentVariable");
-        // var token = File.ReadAllText("token.txt");
-        // var token = JsonConvert.DeserializeObject<AConfigurationClass>(File.ReadAllText("config.json")).Token;
+        _client = new DiscordSocketClient(new DiscordSocketConfig
+        {
+            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+        });
 
-        await _client.LoginAsync(TokenType.Bot, token);
-        await _client.StartAsync();
+        _token = new TokenFile();
+        _commands = new CommandService();
+        commandHandler = new CommandHandler(_client, _commands);
+
+        _client.Log += Log;
+
+        if (_token != null)
+        {
+            await _client.LoginAsync(TokenType.Bot, _token.Token);
+            await _client.StartAsync();
+        }
+        else
+        {
+            Console.WriteLine("TokenFile instance is null.");
+        }
+
+        await commandHandler.InstallCommandsAsync();
 
         // Block this task until the program is closed.
         await Task.Delay(-1);
     }
-    
+
     private static Task Log(LogMessage msg)
     {
         Console.WriteLine(msg.ToString());
         return Task.CompletedTask;
     }
 }
-
-public class ConfigurationBuilder
-{
-}
-
